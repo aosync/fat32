@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	fat32_entry_t file = root;
 	
 	for (int a = 2; a < argc; a++) {
-		i = fat32_seek(&fat, &file, argv[a], &file);
+		i = fat32_walk(&fat, &file, argv[a], &file);
 		if (i != FAT32_OK) {
 			printf("fat32: walk error %u\n", i);
 			return 1;

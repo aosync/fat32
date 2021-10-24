@@ -89,7 +89,7 @@ int streqfat(char *a, char *cstr) {
 	return (a[i] == ' ' || i == 11) && cstr[i] == '\0';
 }
 
-fat32_error_t fat32_seek(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_entry_t *ent) {
+fat32_error_t fat32_walk(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_entry_t *ent) {
 	if (!(dir->attribute & FAT32_ATTRIBUTE_DIRECTORY))
 		return FAT32_NOTDIR;
 
@@ -102,7 +102,6 @@ fat32_error_t fat32_seek(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_ent
 		if (ret)
 			return ret;
 
-
 		for (int i = 0; i < 16; i++) {
 			uint8_t *entry = ws + i*32;
 			fat32_entry_type_t type = fat32_parse_entry(entry, ent);
@@ -111,8 +110,6 @@ fat32_error_t fat32_seek(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_ent
 			if (type == FAT32_EOD)
 				return FAT32_NOENTRY;
 
-			printf("filename: %s\n", ent->filename);
-			
 			if (streqfat(ent->filename, name)) {
 				return FAT32_OK;
 			}

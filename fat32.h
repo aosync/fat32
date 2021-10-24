@@ -41,12 +41,11 @@ typedef struct fat32{
 
 	fat32_sector_reader_t read_sectors;
 	void *ctx;
-	uint8_t *buf;
 } fat32_t;
 
-fat32_error_t fat32_init(fat32_t *, fat32_sector_reader_t, uint32_t, void *);
-uint32_t fat32_cluster_to_lba(fat32_t *, uint32_t);
-uint32_t fat32_next_cluster(fat32_t *, uint32_t);
+fat32_error_t fat32_init(fat32_t *fat, fat32_sector_reader_t read_sectors, uint32_t count, void *ctx);
+uint32_t fat32_cluster_to_lba(fat32_t *fat, uint32_t cluster);
+uint32_t fat32_next_cluster(fat32_t *fat, uint32_t cluster);
 
 #define FAT32_ATTRIBUTE_RO (1 << 0)
 #define FAT32_ATTRIBUTE_HIDDEN (1 << 1)
@@ -78,8 +77,7 @@ typedef enum fat32_entry_type {
 fat32_entry_type_t fat32_parse_entry(uint8_t *addr, fat32_entry_t *ent);
 
 void fat32_root_dir(fat32_t *fat, fat32_entry_t *root);
-fat32_error_t fat32_seek(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_entry_t *ent);
-
+fat32_error_t fat32_walk(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_entry_t *ent);
 int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count);
 
 #endif
