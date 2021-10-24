@@ -43,9 +43,11 @@ typedef struct fat32{
 	void *ctx;
 } fat32_t;
 
-fat32_error_t fat32_init(fat32_t *fat, fat32_sector_reader_t read_sectors, uint32_t count, void *ctx);
+fat32_error_t fat32_init(fat32_t *fat, fat32_sector_reader_t read_sectors, uint32_t part_lba_begin, void *ctx);
 uint32_t fat32_cluster_to_lba(fat32_t *fat, uint32_t cluster);
 uint32_t fat32_next_cluster(fat32_t *fat, uint32_t cluster);
+
+#define FAT32_FILENAME_MAX 11
 
 #define FAT32_ATTRIBUTE_RO (1 << 0)
 #define FAT32_ATTRIBUTE_HIDDEN (1 << 1)
