@@ -86,19 +86,31 @@ fat32_entry_type_t fat32_parse_entry(uint8_t *addr, fat32_entry_t *ent) {
 }
 
 int streqfat(char *a, char *cstr) {
-	int aind = 0, cind = 0;
-	while (aind < FAT32_FILENAME_MAX && cstr[cind]) {
+	int find = 0, cind = 0;
+	char fatfmt[FAT32_FILENAME_MAX];
+	while (find < FAT32_FILENAME_MAX) {
+		if (cstr[cind] == '\0') {
+			fatfmt[find++] = ' ';
+			continue;
+		}
 		if (cstr[cind] == '.') {
-			aind = 8;
+			while (find < 8)
+				fatfmt[find++] = ' ';
 			cind++;
 			continue;
 		}
-		if (a[aind] != cstr[cind])
-			return 0;
-		aind++;
-		cind++;
+
+		fatfmt[find++] = cstr[cind++];
 	}
-	return (cstr[cind] == '\0' && aind == FAT32_FILENAME_MAX) || (cstr[cind] == '\0' && a[aind] == ' ');
+	if (cstr[cind] != '\0')
+		return 0;
+
+	for (int i = 0; i < FAT32_FILENAME_MAX; i++) {
+		if (a[i] != fatfmt[i])
+			return 0;
+	}
+
+	return 1;
 }
 
 fat32_error_t fat32_walk(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_entry_t *ent) {
