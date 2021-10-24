@@ -160,12 +160,14 @@ int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count, uin
 		}
 		head = 0;
 
-		if(count > 0)
-			cluster = fat32_next_cluster(fat, cluster);
+		cluster = fat32_next_cluster(fat, cluster);
 	}
 
 	file->offset += index;
 	file->curcluster = cluster;
+
+	if (file->offset == file->size)
+		file->curcluster = file->cluster;
 
 	return index;
 }
