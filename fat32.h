@@ -66,6 +66,9 @@ typedef struct fat32_entry {
 	uint8_t attribute;
 	uint32_t cluster;
 	uint32_t size;
+
+	uint32_t curcluster;
+	uint32_t offset;
 } fat32_entry_t;
 
 typedef enum fat32_entry_type {
@@ -78,6 +81,7 @@ fat32_entry_type_t fat32_parse_entry(uint8_t *addr, fat32_entry_t *ent);
 
 void fat32_root_dir(fat32_t *fat, fat32_entry_t *root);
 fat32_error_t fat32_walk(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_entry_t *ent);
-int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count);
+int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count, uint32_t offset);
+void fat32_skip_clusters(fat32_t *fat, fat32_entry_t *file, uint32_t count);
 
 #endif

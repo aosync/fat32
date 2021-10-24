@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 	char *contents = malloc(file.size);
 	if (contents == NULL)
 		return 1;
-	int r = fat32_read(&fat, &file, contents, file.size);
+	int r = fat32_read(&fat, &file, contents, file.size, 0);
 	write(1, contents, r);
 
 	free(contents);

@@ -77,6 +77,8 @@ fat32_entry_type_t fat32_parse_entry(uint8_t *addr, fat32_entry_t *ent) {
 	ent->attribute = addr[FAT32_ENTRY_ATTRIBUTE_OFF];
 	ent->cluster = ((*(uint16_t *)(addr + FAT32_ENTRY_FIRST_CLUSTER_HIGH_OFF)) << 16) | *(uint16_t *)(addr + FAT32_ENTRY_FIRST_CLUSTER_LOW_OFF);
 	ent->size = *(uint32_t *)(addr + FAT32_ENTRY_SIZE_OFF);
+	ent->curcluster = ent->cluster;
+	ent->offset = 0;
 
 	/* TODO: add LFN */
 
@@ -121,26 +123,49 @@ fat32_error_t fat32_walk(fat32_t *fat, fat32_entry_t *dir, char *name, fat32_ent
 	return FAT32_NOENTRY;
 }
 
-int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count) {
-	if (count > file->size)
-		count = file->size;
+void fat32_skip_clusters(fat32_t *fat, fat32_entry_t *file, uint32_t count) {
+	while (file->curcluster != FAT32_FAT_LAST_CLUSTER && count > 0) {
+		file->curcluster = fat32_next_cluster(fat, file->curcluster);
+		count--;
+	}
+}
+
+int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count, uint32_t offset) {
+	if (count + offset > file->size)
+		count = file->size - offset;
+
+	uint32_t wanted = offset / (FAT32_BYTES_PER_SECTOR * fat->sectors_per_cluster);
+	uint32_t current = file->offset / (FAT32_BYTES_PER_SECTOR * fat->sectors_per_cluster);
+	if (current > wanted) {
+		file->curcluster = file->cluster;
+		fat32_skip_clusters(fat, file, wanted);
+	} else {
+		fat32_skip_clusters(fat, file, wanted - current);
+	}
+	file->offset = offset;
 
 	uint8_t ws[FAT32_BYTES_PER_SECTOR * fat->sectors_per_cluster];
 
-	uint32_t cluster = file->cluster;
+	uint32_t cluster = file->curcluster;
 
+	uint32_t head = file->offset % (FAT32_BYTES_PER_SECTOR * fat->sectors_per_cluster);
 	uint32_t index = 0;
 	while (cluster != FAT32_FAT_LAST_CLUSTER && count > 0) {
 		int ret = fat->read_sectors(fat32_cluster_to_lba(fat, cluster), fat->sectors_per_cluster, ws, fat->ctx);
 		if (ret)
 			return ret;
 
-		for (int i = 0; i < FAT32_BYTES_PER_SECTOR * fat->sectors_per_cluster && count > 0; i++, count--, index++) {
+		for (int i = head; i < FAT32_BYTES_PER_SECTOR * fat->sectors_per_cluster && count > 0; i++, count--, index++) {
 			((uint8_t*)buf)[index] = ws[i];
 		}
+		head = 0;
 
-		cluster = fat32_next_cluster(fat, cluster);
+		if(count > 0)
+			cluster = fat32_next_cluster(fat, cluster);
 	}
+
+	file->offset += index;
+	file->curcluster = cluster;
 
 	return index;
 }
