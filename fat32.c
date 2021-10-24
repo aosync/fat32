@@ -131,6 +131,8 @@ void fat32_skip_clusters(fat32_t *fat, fat32_entry_t *file, uint32_t count) {
 }
 
 int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count, uint32_t offset) {
+    	if (offset > file->size)
+        	return -1;
 	if (count + offset > file->size)
 		count = file->size - offset;
 
