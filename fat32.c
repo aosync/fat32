@@ -1,7 +1,5 @@
 #include "fat32.h"
 
-#include <stdio.h>
-
 fat32_error_t fat32_init(fat32_t *fat, fat32_sector_reader_t read_sectors, uint32_t part_lba_begin, void *ctx) {
 	*fat = (fat32_t) {
 		.part_lba_begin = part_lba_begin,
@@ -153,7 +151,7 @@ uint32_t fat32_skip_clusters(fat32_t *fat, uint32_t cluster, uint32_t count) {
 
 int fat32_read(fat32_t *fat, fat32_entry_t *file, void *buf, uint32_t count, uint32_t offset) {
     	if (offset > file->size)
-        	return -1;
+        	return 0;
 	if (count + offset > file->size)
 		count = file->size - offset;
 
